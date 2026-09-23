@@ -127,9 +127,9 @@ const searchSchools = [
 
 function Logo() {
   return (
-    <Link href="/" className="brand-mark" aria-label="soma home">
-      <span className="brand-sun"><span /></span>
-      <span>soma<span className="brand-dot">.</span></span>
+    <Link href="/" className="brand-mark" aria-label="streamflo home">
+      <img src="/manus-storage/streamflo-logo_9e00dda4.png" alt="streamflo" className="brand-logo" />
+      <span>streamflo</span>
     </Link>
   );
 }
@@ -291,7 +291,7 @@ function HomePage() {
         <section className="section how-section" id="how-it-works">
           <div className="container how-grid">
             <div className="how-image"><img src={img.classroom} alt="Students learning together in a classroom" /><div className="how-image-label"><span>01 / 03</span><strong>From first search<br />to first day.</strong></div></div>
-            <div className="how-copy"><div className="eyebrow"><span className="eyebrow-line" />The soma way</div><h2>A little less <em>searching.</em><br />A lot more certainty.</h2><p>We bring the details families need into one clear place, so you can spend less time chasing information and more time picturing your child there.</p><div className="steps"><div className="step active"><span className="step-number">01</span><div><strong>Find schools that fit</strong><p>Browse with filters designed around real family decisions.</p></div></div><div className="step"><span className="step-number">02</span><div><strong>Compare with clarity</strong><p>See fees, facilities and curriculum side by side.</p></div></div><div className="step"><span className="step-number">03</span><div><strong>Take the next step</strong><p>Contact or apply directly when you're ready.</p></div></div></div></div>
+            <div className="how-copy"><div className="eyebrow"><span className="eyebrow-line" />The streamflo way</div><h2>A little less <em>searching.</em><br />A lot more certainty.</h2><p>We bring the details families need into one clear place, so you can spend less time chasing information and more time picturing your child there.</p><div className="steps"><div className="step active"><span className="step-number">01</span><div><strong>Find schools that fit</strong><p>Browse with filters designed around real family decisions.</p></div></div><div className="step"><span className="step-number">02</span><div><strong>Compare with clarity</strong><p>See fees, facilities and curriculum side by side.</p></div></div><div className="step"><span className="step-number">03</span><div><strong>Take the next step</strong><p>Contact or apply directly when you're ready.</p></div></div></div></div>
           </div>
         </section>
 
@@ -337,7 +337,7 @@ function ProfilePage() {
 }
 
 function Footer() {
-  return <footer className="site-footer"><div className="container footer-grid"><div><Logo /><p>Helping families find<br />the right place to grow.</p><div className="footer-socials"><button aria-label="Instagram" onClick={() => toast("Social links are coming soon")}>ig</button><button aria-label="Facebook" onClick={() => toast("Social links are coming soon")}>f</button><button aria-label="X" onClick={() => toast("Social links are coming soon")}>x</button></div></div><div className="footer-links"><div><strong>Discover</strong><Link href="/schools">Find a school</Link><a href="#categories">Explore categories</a><a href="#how-it-works">How it works</a><button onClick={() => toast("Compare is coming soon")}>Compare schools</button></div><div><strong>For schools</strong><button onClick={() => toast("School onboarding is coming soon")}>List your school</button><button onClick={() => toast("Resources are coming soon")}>School resources</button><button onClick={() => toast("Claim flow is coming soon")}>Claim a profile</button><button onClick={() => toast("Contact is coming soon")}>Contact us</button></div><div><strong>Company</strong><button onClick={() => toast("About page is coming soon")}>About soma</button><button onClick={() => toast("Privacy page is coming soon")}>Privacy</button><button onClick={() => toast("Terms page is coming soon")}>Terms</button></div></div></div><div className="container footer-bottom"><span>© 2026 soma. Made for families in Kenya.</span><span>From first search to first day.</span></div></footer>;
+  return <footer className="site-footer"><div className="container footer-grid"><div><Logo /><p>Helping families find<br />the right place to grow.</p><div className="footer-socials"><button aria-label="Instagram" onClick={() => toast("Social links are coming soon")}>ig</button><button aria-label="Facebook" onClick={() => toast("Social links are coming soon")}>f</button><button aria-label="X" onClick={() => toast("Social links are coming soon")}>x</button></div></div><div className="footer-links"><div><strong>Discover</strong><Link href="/schools">Find a school</Link><a href="#categories">Explore categories</a><a href="#how-it-works">How it works</a><button onClick={() => toast("Compare is coming soon")}>Compare schools</button></div><div><strong>For schools</strong><button onClick={() => toast("School onboarding is coming soon")}>List your school</button><button onClick={() => toast("Resources are coming soon")}>School resources</button><button onClick={() => toast("Claim flow is coming soon")}>Claim a profile</button><button onClick={() => toast("Contact is coming soon")}>Contact us</button></div><div><strong>Company</strong><button onClick={() => toast("About page is coming soon")}>About streamflo</button><button onClick={() => toast("Privacy page is coming soon")}>Privacy</button><button onClick={() => toast("Terms page is coming soon")}>Terms</button></div></div></div><div className="container footer-bottom"><span>© 2026 streamflo. Made for families in Kenya.</span><span>From first search to first day.</span></div></footer>;
 }
 
 export default function Home() {

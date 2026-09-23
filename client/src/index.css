@@ -79,7 +79,8 @@
   .site-page { min-height: 100vh; overflow: hidden; background: var(--cream); }
   .site-header { position: relative; z-index: 20; height: 86px; background: var(--cream); border-bottom: 1px solid rgba(23,45,39,.08); }
   .header-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
-  .brand-mark { display: inline-flex; align-items: center; gap: 10px; color: var(--deep); font-size: 25px; line-height: 1; font-weight: 800; letter-spacing: -.08em; }
+  .brand-mark { display: inline-flex; align-items: center; gap: 9px; color: var(--deep); font-size: 23px; line-height: 1; font-weight: 800; letter-spacing: -.07em; }
+  .brand-logo { width: 23px; height: 33px; display: block; object-fit: contain; }
   .brand-dot { color: var(--coral); }
   .brand-sun { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--coral); transform: rotate(45deg); }
   .brand-sun span { width: 9px; height: 9px; background: var(--gold); border-radius: 50%; display: block; }
