@@ -2,7 +2,7 @@ import { useRef, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { Download, FileText, Plus, Trash2, Upload, X } from "lucide-react";
 
-import { img } from "../Home";
+import { img } from "@/lib/images";
 import BackofficeShell from "./Shell";
 import { documents as initialDocuments, type DocumentAsset } from "./data";
 

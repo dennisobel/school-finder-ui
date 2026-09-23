@@ -9,6 +9,7 @@ import {
   Inbox,
   MessageSquare,
   Receipt,
+  Sparkles,
   TrendingUp,
   UserCog,
 } from "lucide-react";
@@ -97,6 +98,7 @@ export default function Overview() {
             <Link href="/school-admin/media" className="bo-quick-action"><ImageIcon size={16} /><span>Add school photos<small>Fresh campus shots help conversion</small></span></Link>
             <Link href="/school-admin/admissions" className="bo-quick-action"><ClipboardList size={16} /><span>Review pending applications<small>{pendingApplications} waiting on a decision</small></span></Link>
             <Link href="/school-admin/enquiries" className="bo-quick-action"><MessageSquare size={16} /><span>Reply to enquiries<small>{newEnquiries} families waiting to hear back</small></span></Link>
+            <Link href="/pathway-ai?school=1&bulk=1" className="bo-quick-action"><Sparkles size={16} /><span>Buy a Pathway AI cohort licence<small>Cover a whole Grade 9 class in one payment</small></span></Link>
           </div>
         </div>
       </div>

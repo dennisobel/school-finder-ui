@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 
 import { COMPARE_LIMIT, compare, useCompare } from "@/lib/compare";
-import { Footer, Header, ModalFrame, img, openModal } from "./Home";
+import { Footer, Header, ModalFrame, openModal } from "./Home";
+import { img } from "@/lib/images";
 import {
   facilities,
   findSchool,

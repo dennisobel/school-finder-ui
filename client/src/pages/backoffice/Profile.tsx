@@ -2,7 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Camera, ShieldCheck, X } from "lucide-react";
 
-import { img } from "../Home";
+import { img } from "@/lib/images";
 import BackofficeShell from "./Shell";
 
 const schoolTypes = ["Private", "Public", "Faith-based", "International", "Special needs"];

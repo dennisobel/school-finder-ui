@@ -159,13 +159,16 @@ export const applications: Application[] = [
   },
 ];
 
-export type OnboardingTask = { id: string; label: string; done: boolean };
+export type LetterType = "admission" | "welcome";
+export type OnboardingTask = { id: string; label: string; done: boolean; letterType?: LetterType };
 export type Student = {
   id: string;
   name: string;
   grade: string;
   guardianName: string;
   startDate: string;
+  /** Links back to the application this student was admitted from, where one exists in this seed data. */
+  applicationId?: string;
   tasks: OnboardingTask[];
 };
 
@@ -176,7 +179,10 @@ export const students: Student[] = [
     grade: "JSS 1",
     guardianName: "Peter Kamau",
     startDate: "12 Jan 2027",
+    applicationId: "app-3",
     tasks: [
+      { id: "t0a", label: "Admission letter issued", done: true, letterType: "admission" },
+      { id: "t0b", label: "Welcome letter issued", done: true, letterType: "welcome" },
       { id: "t1", label: "Admission fee paid", done: true },
       { id: "t2", label: "Uniform ordered", done: true },
       { id: "t3", label: "Medical form submitted", done: true },
@@ -191,7 +197,10 @@ export const students: Student[] = [
     grade: "Grade 1",
     guardianName: "Grace Njeri",
     startDate: "12 Jan 2027",
+    applicationId: "app-4",
     tasks: [
+      { id: "t0a", label: "Admission letter issued", done: true, letterType: "admission" },
+      { id: "t0b", label: "Welcome letter issued", done: true, letterType: "welcome" },
       { id: "t1", label: "Admission fee paid", done: true },
       { id: "t2", label: "Uniform ordered", done: true },
       { id: "t3", label: "Medical form submitted", done: true },
@@ -207,6 +216,8 @@ export const students: Student[] = [
     guardianName: "Esther Kiptoo",
     startDate: "12 Jan 2027",
     tasks: [
+      { id: "t0a", label: "Admission letter issued", done: true, letterType: "admission" },
+      { id: "t0b", label: "Welcome letter issued", done: false, letterType: "welcome" },
       { id: "t1", label: "Admission fee paid", done: true },
       { id: "t2", label: "Uniform ordered", done: false },
       { id: "t3", label: "Medical form submitted", done: false },
@@ -222,6 +233,8 @@ export const students: Student[] = [
     guardianName: "Samuel Wafula",
     startDate: "12 Jan 2027",
     tasks: [
+      { id: "t0a", label: "Admission letter issued", done: true, letterType: "admission" },
+      { id: "t0b", label: "Welcome letter issued", done: true, letterType: "welcome" },
       { id: "t1", label: "Admission fee paid", done: true },
       { id: "t2", label: "Uniform ordered", done: true },
       { id: "t3", label: "Medical form submitted", done: true },
@@ -235,6 +248,178 @@ export const students: Student[] = [
 export function studentProgress(student: Student) {
   const done = student.tasks.filter((t) => t.done).length;
   return Math.round((done / student.tasks.length) * 100);
+}
+
+const SCHOOL_NAME = "Greenfield Academy";
+
+export function letterContent(student: Student, type: LetterType) {
+  if (type === "admission") {
+    return {
+      subject: `Offer of Admission — ${student.name}`,
+      body: [
+        `Dear ${student.guardianName},`,
+        `We are delighted to confirm that ${student.name} has been offered a place at ${SCHOOL_NAME} for ${student.grade}, starting ${student.startDate}.`,
+        `This offer is confirmed on receipt of the admission fee and the onboarding checklist shared with you. Our admissions team is on hand for anything you need before the start date.`,
+        `We look forward to welcoming ${student.name} to our school community.`,
+      ],
+      signOff: "Admissions Office",
+    };
+  }
+  return {
+    subject: `Welcome to ${SCHOOL_NAME} — ${student.name}`,
+    body: [
+      `Dear ${student.guardianName},`,
+      `Welcome to the ${SCHOOL_NAME} family! We're excited to have ${student.name} join ${student.grade} on ${student.startDate}.`,
+      `Ahead of the first day, please complete the remaining onboarding steps (uniform, medical form, orientation day) so we can have everything ready. A welcome pack with the school diary, uniform guide, and term calendar will be waiting on arrival.`,
+      `If you have any questions before then, our front office is always happy to help.`,
+    ],
+    signOff: "Head Teacher's Office",
+  };
+}
+
+export type Term = "Term 1" | "Term 2" | "Term 3";
+export type ReportKind = "Mid-term" | "End-term";
+export type SubjectGrade = { subject: string; score: number; grade: string };
+export type ProgressReport = {
+  id: string;
+  studentId: string;
+  year: string;
+  term: Term;
+  kind: ReportKind;
+  published: boolean;
+  issuedOn?: string;
+  attendance: string;
+  position: string;
+  classTeacherComment: string;
+  principalComment: string;
+  subjects: SubjectGrade[];
+};
+
+export const progressReports: ProgressReport[] = [
+  {
+    id: "rep-1",
+    studentId: "stu-1",
+    year: "2026",
+    term: "Term 2",
+    kind: "End-term",
+    published: true,
+    issuedOn: "10 Aug 2026",
+    attendance: "58/60 days",
+    position: "6th out of 34",
+    classTeacherComment: "Zawadi is settling in well and shows strong effort in Mathematics and Integrated Science.",
+    principalComment: "A pleasing report. Keep up the consistent effort next term.",
+    subjects: [
+      { subject: "Mathematics", score: 78, grade: "A-" },
+      { subject: "English", score: 71, grade: "B+" },
+      { subject: "Kiswahili", score: 65, grade: "B" },
+      { subject: "Integrated Science", score: 82, grade: "A" },
+      { subject: "Social Studies", score: 69, grade: "B" },
+    ],
+  },
+  {
+    id: "rep-2",
+    studentId: "stu-1",
+    year: "2026",
+    term: "Term 3",
+    kind: "Mid-term",
+    published: false,
+    attendance: "22/24 days",
+    position: "—",
+    classTeacherComment: "Draft — awaiting Integrated Science CAT scores before publishing.",
+    principalComment: "",
+    subjects: [
+      { subject: "Mathematics", score: 74, grade: "B+" },
+      { subject: "English", score: 73, grade: "B+" },
+      { subject: "Kiswahili", score: 68, grade: "B" },
+      { subject: "Integrated Science", score: 0, grade: "—" },
+      { subject: "Social Studies", score: 70, grade: "B" },
+    ],
+  },
+  {
+    id: "rep-3",
+    studentId: "stu-2",
+    year: "2026",
+    term: "Term 2",
+    kind: "End-term",
+    published: true,
+    issuedOn: "10 Aug 2026",
+    attendance: "60/60 days",
+    position: "2nd out of 29",
+    classTeacherComment: "Imani is a bright, attentive learner who participates enthusiastically in class.",
+    principalComment: "Excellent term. Well done, Imani.",
+    subjects: [
+      { subject: "Numeracy", score: 91, grade: "A" },
+      { subject: "Literacy", score: 88, grade: "A" },
+      { subject: "Kiswahili", score: 80, grade: "A-" },
+      { subject: "Environmental Activities", score: 85, grade: "A" },
+      { subject: "Creative Arts", score: 90, grade: "A" },
+    ],
+  },
+  {
+    id: "rep-4",
+    studentId: "stu-4",
+    year: "2026",
+    term: "Term 1",
+    kind: "End-term",
+    published: true,
+    issuedOn: "12 May 2026",
+    attendance: "59/60 days",
+    position: "9th out of 38",
+    classTeacherComment: "Naomi works steadily and has improved her English composition scores this term.",
+    principalComment: "Solid, consistent progress across the board.",
+    subjects: [
+      { subject: "Mathematics", score: 70, grade: "B" },
+      { subject: "English", score: 75, grade: "B+" },
+      { subject: "Kiswahili", score: 66, grade: "B" },
+      { subject: "Science", score: 72, grade: "B" },
+      { subject: "Social Studies", score: 68, grade: "B" },
+    ],
+  },
+  {
+    id: "rep-5",
+    studentId: "stu-4",
+    year: "2026",
+    term: "Term 2",
+    kind: "End-term",
+    published: true,
+    issuedOn: "10 Aug 2026",
+    attendance: "60/60 days",
+    position: "5th out of 38",
+    classTeacherComment: "Great improvement this term, especially in Mathematics.",
+    principalComment: "Keep this momentum going into Term 3.",
+    subjects: [
+      { subject: "Mathematics", score: 79, grade: "A-" },
+      { subject: "English", score: 77, grade: "B+" },
+      { subject: "Kiswahili", score: 70, grade: "B" },
+      { subject: "Science", score: 76, grade: "B+" },
+      { subject: "Social Studies", score: 73, grade: "B+" },
+    ],
+  },
+  {
+    id: "rep-6",
+    studentId: "stu-3",
+    year: "2026",
+    term: "Term 3",
+    kind: "Mid-term",
+    published: false,
+    attendance: "18/24 days",
+    position: "—",
+    classTeacherComment: "Draft — Ryan joined mid-term; scores below reflect his first two CATs only.",
+    principalComment: "",
+    subjects: [
+      { subject: "Mathematics", score: 58, grade: "C+" },
+      { subject: "English", score: 61, grade: "B-" },
+      { subject: "Kiswahili", score: 55, grade: "C+" },
+      { subject: "Science", score: 0, grade: "—" },
+      { subject: "Social Studies", score: 60, grade: "B-" },
+    ],
+  },
+];
+
+export function reportAverage(report: ProgressReport) {
+  const scored = report.subjects.filter((s) => s.score > 0);
+  if (!scored.length) return 0;
+  return Math.round(scored.reduce((sum, s) => sum + s.score, 0) / scored.length);
 }
 
 export type DocumentAsset = { id: string; name: string; category: string; updated: string; size: string };

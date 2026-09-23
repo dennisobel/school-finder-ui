@@ -1,9 +1,13 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { toast } from "sonner";
-import { Banknote, ClipboardList, Mail, Phone, Send, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Banknote, CheckCircle2, ClipboardList, GraduationCap, Mail, Phone, Send, Smartphone, ThumbsDown, ThumbsUp } from "lucide-react";
 
+import { MpesaPaymentModal } from "@/components/MpesaPaymentModal";
 import BackofficeShell from "./Shell";
-import { applications as initialApplications, type Application, type ApplicationStatus } from "./data";
+import { applications as initialApplications, students, type Application, type ApplicationStatus } from "./data";
+
+const PLATFORM_FEE_RATE = 0.02;
 
 const filters: ("All" | ApplicationStatus)[] = ["All", "Submitted", "Under review", "Offer sent", "Accepted", "Declined"];
 const statusTone: Record<ApplicationStatus, string> = {
@@ -19,6 +23,8 @@ export default function Admissions() {
   const [applications, setApplications] = useState<Application[]>(initialApplications);
   const [filter, setFilter] = useState<"All" | ApplicationStatus>("All");
   const [selectedId, setSelectedId] = useState<string | null>(initialApplications[0]?.id ?? null);
+  const [collectedVia, setCollectedVia] = useState<Record<string, boolean>>({});
+  const [collecting, setCollecting] = useState<Application | null>(null);
 
   const visible = applications.filter((a) => filter === "All" || a.status === filter);
   const selected = applications.find((a) => a.id === selectedId) ?? null;
@@ -28,6 +34,12 @@ export default function Admissions() {
   }
   function setFeeStatus(id: string, feeStatus: Application["feeStatus"]) {
     setApplications((prev) => prev.map((a) => (a.id === id ? { ...a, feeStatus } : a)));
+  }
+  function collectFee(app: Application) {
+    setFeeStatus(app.id, "Paid");
+    setCollectedVia((prev) => ({ ...prev, [app.id]: true }));
+    setCollecting(null);
+    toast(`Admission fee collected from ${app.guardianName}`);
   }
 
   return (
@@ -78,10 +90,21 @@ export default function Admissions() {
                   <span className={`bo-status-pill ${feeTone[selected.feeStatus]}`}><Banknote size={12} /> {selected.feeStatus}</span>
                 </div>
                 <p style={{ margin: "0 0 12px", color: "var(--deep)", fontFamily: "'Fraunces', serif", fontSize: 24 }}>KES {selected.admissionFee.toLocaleString()}</p>
-                <div className="flow-button-row solo" style={{ gap: 8 }}>
-                  {selected.feeStatus !== "Paid" && <button className="back-button" onClick={() => { setFeeStatus(selected.id, "Waived"); toast("Fee waived"); }}>Waive fee</button>}
-                  {selected.feeStatus !== "Paid" && <button className="primary-action" onClick={() => { setFeeStatus(selected.id, "Paid"); toast("Fee marked as paid"); }}>Mark as paid</button>}
-                </div>
+                {selected.feeStatus === "Paid" && collectedVia[selected.id] && (
+                  <div className="fee-breakdown">
+                    <span className="fee-breakdown-tag"><CheckCircle2 size={12} /> Collected via streamflo</span>
+                    <div className="fee-breakdown-row"><span>Gross fee</span><strong>KES {selected.admissionFee.toLocaleString()}</strong></div>
+                    <div className="fee-breakdown-row muted"><span>streamflo fee (2%)</span><span>− KES {Math.round(selected.admissionFee * PLATFORM_FEE_RATE).toLocaleString()}</span></div>
+                    <div className="fee-breakdown-row total"><span>Net payout to school</span><strong>KES {Math.round(selected.admissionFee * (1 - PLATFORM_FEE_RATE)).toLocaleString()}</strong></div>
+                  </div>
+                )}
+                {selected.feeStatus !== "Paid" && (
+                  <div className="flow-button-row solo" style={{ gap: 8, flexWrap: "wrap" }}>
+                    <button className="primary-action" onClick={() => setCollecting(selected)}><Smartphone size={14} /> Collect via M-Pesa</button>
+                    <button className="back-button" onClick={() => { setFeeStatus(selected.id, "Paid"); toast("Fee marked as paid manually"); }}>Mark as paid manually</button>
+                    <button className="back-button" onClick={() => { setFeeStatus(selected.id, "Waived"); toast("Fee waived"); }}>Waive fee</button>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -104,6 +127,25 @@ export default function Admissions() {
                 </div>
               </div>
 
+              {selected.status === "Accepted" && (() => {
+                const linkedStudent = students.find((s) => s.applicationId === selected.id);
+                return (
+                  <div className="bo-panel" style={{ padding: 18, background: "var(--paper)" }}>
+                    <div className="bo-panel-head" style={{ marginBottom: 10 }}>
+                      <div>
+                        <h2 style={{ fontSize: 15 }}>Onboarding</h2>
+                        <p>{linkedStudent ? "Continue this student's onboarding checklist, letters and progress reports." : "Kick off the onboarding checklist, admission letter and welcome letter for this student."}</p>
+                      </div>
+                    </div>
+                    {linkedStudent ? (
+                      <Link href={`/school-admin/onboarding?student=${linkedStudent.id}`} className="outline-button"><GraduationCap size={14} /> Go to onboarding checklist</Link>
+                    ) : (
+                      <button className="outline-button" onClick={() => toast(`Onboarding checklist created for ${selected.childName} — head to Students → Onboarding to continue.`)}><GraduationCap size={14} /> Set up onboarding</button>
+                    )}
+                  </div>
+                );
+              })()}
+
               <div className="flow-button-row solo" style={{ gap: 10 }}>
                 <button className="back-button" onClick={() => toast(`Opening email to ${selected.guardianEmail}…`)}><Mail size={14} /> Email guardian</button>
                 <button className="back-button" onClick={() => toast(`Calling ${selected.guardianPhone}…`)}><Phone size={14} /> Call guardian</button>
@@ -117,6 +159,22 @@ export default function Admissions() {
           </div>
         )}
       </div>
+
+      {collecting && (
+        <MpesaPaymentModal
+          eyebrow={`Request KES ${collecting.admissionFee.toLocaleString()} from ${collecting.guardianName}`}
+          title="Collect via streamflo."
+          amount={`KES ${collecting.admissionFee.toLocaleString()}`}
+          amountLabel="Admission fee"
+          payerPhone={collecting.guardianPhone}
+          payNote={`This is a UI preview, so no real payment is taken. In production streamflo sends an M-Pesa STK push straight to ${collecting.guardianName}'s phone and settles the balance to your school account, minus a 2% platform fee.`}
+          successTitle="Fee collected."
+          successBody={`KES ${collecting.admissionFee.toLocaleString()} received from ${collecting.guardianName}. KES ${Math.round(collecting.admissionFee * PLATFORM_FEE_RATE).toLocaleString()} streamflo fee deducted — the rest is on its way to your school account.`}
+          ctaLabel="Done"
+          onClose={() => setCollecting(null)}
+          onSuccess={() => collectFee(collecting)}
+        />
+      )}
     </BackofficeShell>
   );
 }

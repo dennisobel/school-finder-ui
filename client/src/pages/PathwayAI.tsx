@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   Check,
   CheckCircle2,
   Cpu,
@@ -11,6 +12,7 @@ import {
   FileText,
   Loader2,
   Lock,
+  MessageCircle,
   Minus,
   Palette,
   ShieldCheck,
@@ -23,7 +25,10 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { Footer, Header, ModalFrame, SectionIntro, img } from "./Home";
+import { CounselorBookingModal, type Booking } from "@/components/CounselorBookingModal";
+import { img } from "@/lib/images";
+import { Footer, Header, ModalFrame, SectionIntro } from "./Home";
+import { matchCounselor } from "./counselors-data";
 
 type Cluster = "stem" | "social" | "arts";
 
@@ -78,6 +83,14 @@ const interestOptions: { label: string; cluster: Cluster }[] = [
   { label: "Understanding people & society", cluster: "social" },
   { label: "Art & design", cluster: "arts" },
   { label: "Sport & movement", cluster: "arts" },
+];
+
+type BulkTier = { id: string; label: string; price: string; perLearner: string; custom?: boolean };
+
+const bulkTiers: BulkTier[] = [
+  { id: "small", label: "Up to 40 learners", price: "KES 4,500", perLearner: "≈ KES 113 / learner" },
+  { id: "medium", label: "41–100 learners", price: "KES 9,000", perLearner: "≈ KES 90 / learner" },
+  { id: "large", label: "100+ learners", price: "Custom pricing", perLearner: "Contact us for a quote", custom: true },
 ];
 
 const counties = ["Nairobi", "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita-Taveta", "Garissa", "Wajir", "Mandera", "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Machakos", "Makueni", "Nyandarua", "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot", "Samburu", "Trans Nzoia", "Uasin Gishu", "Elgeyo-Marakwet", "Nandi", "Baringo", "Laikipia", "Nakuru", "Narok", "Kajiado", "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia", "Siaya", "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira"];
@@ -232,7 +245,7 @@ export default function PathwayAI() {
   const params = new URLSearchParams(window.location.search);
   const schoolContext = params.get("school") === "1";
   const price = schoolContext ? "KES 150" : "KES 300";
-  const priceNote = schoolContext ? "KES 150 per learner · billed to your school account" : `${price} to unlock the full report`;
+  const priceNote = schoolContext ? "KES 150 per learner, or a bulk cohort licence · billed to your school account" : `${price} to unlock the full report`;
 
   // Resolved inside the component (not at module scope) so this only reads
   // `img` from ./Home after that module has fully initialised — Home.tsx and
@@ -258,12 +271,18 @@ export default function PathwayAI() {
   const [consent, setConsent] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [visibleSteps, setVisibleSteps] = useState(0);
+  const [billing, setBilling] = useState<"single" | "bulk">(params.get("bulk") === "1" ? "bulk" : "single");
+  const [bulkTierId, setBulkTierId] = useState(bulkTiers[0].id);
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const selectedBulkTier = bulkTiers.find((t) => t.id === bulkTierId)!;
+  const payAmount = schoolContext && billing === "bulk" ? selectedBulkTier.price : price;
 
   const results = useMemo(() => computeResults(marks, interests), [marks, interests]);
   const top = results[0];
   const topPathway = pathways.find((p) => p.id === top.cluster)!;
   const reasons = useMemo(() => buildReasons(top, marks, interests, county), [top, marks, interests, county]);
   const closeCall = top.score - results[1].score < 10;
+  const matchedCounselor = matchCounselor(top.cluster);
 
   useEffect(() => {
     if (stage !== "processing") return;
@@ -604,14 +623,38 @@ export default function PathwayAI() {
               <div className="unlock-panel">
                 <Sparkles size={20} />
                 <h3>Unlock the full report</h3>
-                <div className="unlock-price">{price}<small>{schoolContext ? "per learner" : "one-time"}</small></div>
+                {schoolContext && (
+                  <div className="topic-tabs billing-toggle">
+                    <button type="button" className={billing === "single" ? "active" : ""} onClick={() => setBilling("single")}>Per learner</button>
+                    <button type="button" className={billing === "bulk" ? "active" : ""} onClick={() => setBilling("bulk")}>Bulk cohort licence</button>
+                  </div>
+                )}
+                {schoolContext && billing === "bulk" ? (
+                  <>
+                    <div className="bulk-tier-list">
+                      {bulkTiers.map((t) => (
+                        <button type="button" key={t.id} className={`bulk-tier-card ${bulkTierId === t.id ? "active" : ""}`} onClick={() => setBulkTierId(t.id)}>
+                          <span className="bulk-tier-head"><strong>{t.label}</strong><em>{t.price}</em></span>
+                          <small>{t.perLearner}</small>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="field-hint bulk-tier-hint">Covers every Grade 9 learner you assess this term under one licence — no per-report payment.</p>
+                  </>
+                ) : (
+                  <div className="unlock-price">{price}<small>{schoolContext ? "per learner" : "one-time"}</small></div>
+                )}
                 <ul className="unlock-features">
                   <li><Check size={13} /> Full pathway ranking &amp; confidence score</li>
                   <li><Check size={13} /> Subject combination guide</li>
                   <li><Check size={13} /> Reasoning behind the recommendation</li>
                   <li><Check size={13} /> Matching schools in {county || "your county"}</li>
                 </ul>
-                <button className="primary-action full-flow-button" onClick={() => setShowPayment(true)}><Smartphone size={16} /> Pay {price} with M-Pesa</button>
+                {schoolContext && billing === "bulk" && selectedBulkTier.custom ? (
+                  <button className="primary-action full-flow-button" onClick={() => toast("Our schools team will reach out to put together a quote")}><Smartphone size={16} /> Request a quote</button>
+                ) : (
+                  <button className="primary-action full-flow-button" onClick={() => setShowPayment(true)}><Smartphone size={16} /> {schoolContext && billing === "bulk" ? `Buy cohort licence · ${payAmount}` : `Pay ${price} with M-Pesa`}</button>
+                )}
                 <button className="text-link pathway-retake-link" onClick={resetAll}>Start a new assessment</button>
               </div>
             </div>
@@ -626,7 +669,7 @@ export default function PathwayAI() {
                   <div className="modal-eyebrow">Full pathway report{studentName ? ` · ${studentName}` : ""}</div>
                   <h2>Recommended: <em className={topPathway.tone}>{topPathway.name}</em></h2>
                   <p className="pathway-card-full">{topPathway.full}</p>
-                  <div className="result-confidence"><Star size={14} fill="currentColor" /> {top.score}% confidence{closeCall && <span className="result-close-call"> · this is a close call, worth discussing with a school counselor</span>}</div>
+                  <div className="result-confidence"><Star size={14} fill="currentColor" /> {top.score}% confidence{closeCall && <span className="result-close-call"> · this is a close call, worth discussing with a <Link href="/counselors">school counselor</Link></span>}</div>
                 </div>
 
                 <div className="result-bars">
@@ -649,6 +692,19 @@ export default function PathwayAI() {
                     <div className="result-subjects-grid">{topPathway.subjects.map((s) => <span key={s} className="subject-chip">{s}</span>)}</div>
                     <h3 className="result-careers-title">Career directions</h3>
                     <div className="result-subjects-grid">{topPathway.careers.map((c) => <span key={c} className="subject-chip muted">{c}</span>)}</div>
+                  </div>
+                </div>
+
+                <div className="counselor-upsell-card">
+                  <img src={matchedCounselor.photo} alt={matchedCounselor.name} className="counselor-upsell-photo" />
+                  <div className="counselor-upsell-body">
+                    <span className="counselor-upsell-eyebrow"><MessageCircle size={12} /> Matched to your {topPathway.name} result</span>
+                    <h3>Still want to talk it through?</h3>
+                    <p>Book a 30-minute call with {matchedCounselor.name.split(" ")[0]}, a {matchedCounselor.title.toLowerCase()}{closeCall ? " — especially worth it for a close call like this one." : "."}</p>
+                  </div>
+                  <div className="counselor-upsell-actions">
+                    <button className="primary-action" onClick={() => setBooking({ counselor: matchedCounselor, slot: null, name: "", phone: "", note: "", phase: "slot" })}>Book a call · KES 300 <ArrowRight size={16} /></button>
+                    <Link href="/counselors" className="text-link counselor-upsell-browse">See all our career counselors <ArrowUpRight size={14} /></Link>
                   </div>
                 </div>
 
@@ -678,7 +734,27 @@ export default function PathwayAI() {
         )}
       </main>
       <Footer />
-      {showPayment && <PaymentModal price={price} schoolContext={schoolContext} onClose={() => setShowPayment(false)} onSuccess={() => { setShowPayment(false); setStage("unlocked"); toast("Payment confirmed via M-Pesa"); }} />}
+      {showPayment && (
+        <PaymentModal
+          price={payAmount}
+          schoolContext={schoolContext}
+          onClose={() => setShowPayment(false)}
+          onSuccess={() => {
+            setShowPayment(false);
+            setStage("unlocked");
+            toast(schoolContext && billing === "bulk" ? `Cohort licence active · ${selectedBulkTier.label}` : "Payment confirmed via M-Pesa");
+          }}
+        />
+      )}
+      {booking && (
+        <CounselorBookingModal
+          booking={booking}
+          onClose={() => setBooking(null)}
+          onChange={setBooking}
+          onPay={() => setBooking({ ...booking, phase: "pay" })}
+          onSuccess={() => setBooking(null)}
+        />
+      )}
     </div>
   );
 }

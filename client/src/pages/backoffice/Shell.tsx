@@ -3,21 +3,24 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import {
   Bell,
+  Briefcase,
   ClipboardList,
+  FileText,
   FolderOpen,
   GraduationCap,
   Inbox,
   LayoutDashboard,
   LogOut,
   Menu,
+  Rocket,
   UserCog,
   X,
 } from "lucide-react";
 
-import { img } from "../Home";
-import { applications, enquiries } from "./data";
+import { img } from "@/lib/images";
+import { applications, enquiries, progressReports } from "./data";
 
-export type BackofficeSection = "overview" | "profile" | "media" | "enquiries" | "admissions" | "onboarding";
+export type BackofficeSection = "overview" | "profile" | "media" | "enquiries" | "admissions" | "onboarding" | "reports" | "promote" | "jobs";
 
 const navGroups: { label: string; items: { id: BackofficeSection; label: string; href: string; icon: typeof LayoutDashboard }[] }[] = [
   { label: "Overview", items: [{ id: "overview", label: "Dashboard", href: "/school-admin", icon: LayoutDashboard }] },
@@ -29,19 +32,33 @@ const navGroups: { label: string; items: { id: BackofficeSection; label: string;
     ],
   },
   {
+    label: "Grow your school",
+    items: [
+      { id: "promote", label: "Promote", href: "/school-admin/promote", icon: Rocket },
+      { id: "jobs", label: "Jobs", href: "/school-admin/jobs", icon: Briefcase },
+    ],
+  },
+  {
     label: "Admissions",
     items: [
       { id: "enquiries", label: "Enquiries", href: "/school-admin/enquiries", icon: Inbox },
       { id: "admissions", label: "Applications", href: "/school-admin/admissions", icon: ClipboardList },
     ],
   },
-  { label: "Students", items: [{ id: "onboarding", label: "Onboarding", href: "/school-admin/onboarding", icon: GraduationCap }] },
+  {
+    label: "Students",
+    items: [
+      { id: "onboarding", label: "Onboarding", href: "/school-admin/onboarding", icon: GraduationCap },
+      { id: "reports", label: "Progress reports", href: "/school-admin/reports", icon: FileText },
+    ],
+  },
 ];
 
 export default function BackofficeShell({ active, title, eyebrow, actions, children }: { active: BackofficeSection; title: string; eyebrow: string; actions?: ReactNode; children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const newEnquiries = enquiries.filter((e) => e.status === "New").length;
   const pendingApplications = applications.filter((a) => a.status === "Submitted" || a.status === "Under review").length;
+  const draftReports = progressReports.filter((r) => !r.published).length;
 
   return (
     <div className="bo-shell">
@@ -60,7 +77,7 @@ export default function BackofficeShell({ active, title, eyebrow, actions, child
               <div className="bo-nav-label">{group.label}</div>
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const badge = item.id === "enquiries" ? newEnquiries : item.id === "admissions" ? pendingApplications : 0;
+                const badge = item.id === "enquiries" ? newEnquiries : item.id === "admissions" ? pendingApplications : item.id === "reports" ? draftReports : 0;
                 return (
                   <Link key={item.id} href={item.href} className={`bo-nav-link ${active === item.id ? "active" : ""}`} onClick={() => setMobileOpen(false)}>
                     <Icon size={16} />
@@ -100,7 +117,7 @@ export default function BackofficeShell({ active, title, eyebrow, actions, child
             {actions}
             <button className="bo-icon-btn" onClick={() => toast("No new notifications beyond what's shown here")} aria-label="Notifications">
               <Bell size={16} />
-              {(newEnquiries > 0 || pendingApplications > 0) && <span className="bo-dot" />}
+              {(newEnquiries > 0 || pendingApplications > 0 || draftReports > 0) && <span className="bo-dot" />}
             </button>
           </div>
         </header>

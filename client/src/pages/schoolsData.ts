@@ -1,7 +1,4 @@
-// Type-only import: Home.tsx imports the pages that import this module, so a
-// runtime import of `img` here would hit its TDZ. Components resolve
-// `img[school.image]` at render time instead.
-import type { img } from "./Home";
+import type { img } from "@/lib/images";
 
 export type ImageKey = keyof typeof img;
 

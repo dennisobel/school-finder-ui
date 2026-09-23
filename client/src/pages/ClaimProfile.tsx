@@ -18,7 +18,8 @@ import {
   X,
 } from "lucide-react";
 
-import { Footer, Header, img } from "./Home";
+import { Footer, Header } from "./Home";
+import { img } from "@/lib/images";
 import { UploadSlot, type UploadedDoc } from "./ListYourSchool";
 import { findSchool, profileHref, schools, type SchoolRecord } from "./schoolsData";
 
