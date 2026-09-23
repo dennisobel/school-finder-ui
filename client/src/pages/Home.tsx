@@ -8,13 +8,13 @@ import {
   BadgeCheck,
   BookOpen,
   Building2,
+  Bus,
   CalendarDays,
   Check,
   ChevronDown,
   ChevronRight,
   CircleCheck,
   Clock3,
-  Compass,
   Download,
   FileText,
   Filter,
@@ -22,6 +22,7 @@ import {
   GraduationCap,
   Heart,
   LayoutGrid,
+  LogIn,
   Mail,
   Map,
   MapPin,
@@ -30,19 +31,34 @@ import {
   MessageCircle,
   Navigation,
   Phone,
+  Scale,
   Search,
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   Star,
+  Wallet,
   X,
 } from "lucide-react";
 
-const img = {
-  campus: "/manus-storage/campus_fa432354.webp",
-  classroom: "/manus-storage/classroom_c217fafd.jpg",
-  courtyard: "/manus-storage/courtyard_37b33c84.jpg",
-  sports: "/manus-storage/sports_f2c1403e.jpg",
+import Admissions from "./backoffice/Admissions";
+import Enquiries from "./backoffice/Enquiries";
+import Media from "./backoffice/Media";
+import Onboarding from "./backoffice/Onboarding";
+import Overview from "./backoffice/Overview";
+import Profile from "./backoffice/Profile";
+import { toggleCompare, useCompare } from "@/lib/compare";
+import ClaimProfile from "./ClaimProfile";
+import Compare, { CompareTray } from "./Compare";
+import ListYourSchool from "./ListYourSchool";
+import PathwayAI from "./PathwayAI";
+import SchoolResources from "./SchoolResources";
+
+export const img = {
+  campus: "https://images.pexels.com/photos/12091126/pexels-photo-12091126.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  classroom: "https://images.pexels.com/photos/8617964/pexels-photo-8617964.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  courtyard: "https://images.pexels.com/photos/34526422/pexels-photo-34526422.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  sports: "https://images.pexels.com/photos/37163764/pexels-photo-37163764.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
 };
 
 const featuredSchools = [
@@ -83,6 +99,7 @@ const featuredSchools = [
 
 const searchSchools = [
   {
+    slug: "greenfield-academy",
     name: "Greenfield Academy",
     location: "Ruiru, Kiambu County",
     type: "Private",
@@ -97,6 +114,7 @@ const searchSchools = [
     image: img.campus,
   },
   {
+    slug: "kiambu-hills-school",
     name: "Kiambu Hills School",
     location: "Limuru, Kiambu County",
     type: "Private",
@@ -111,6 +129,7 @@ const searchSchools = [
     image: img.sports,
   },
   {
+    slug: "st-hannahs-academy",
     name: "St. Hannah's Academy",
     location: "Thika, Kiambu County",
     type: "Private",
@@ -129,19 +148,19 @@ const searchSchools = [
 function Logo() {
   return (
     <Link href="/" className="brand-mark" aria-label="streamflo home">
-      <img src="/manus-storage/streamflo-logo_9e00dda4.png" alt="streamflo" className="brand-logo" />
+      <img src="/streamflo-logo.png" alt="streamflo" className="brand-logo" />
       <span>streamflo</span>
     </Link>
   );
 }
 
-type ModalKind = "application" | "signin" | "signup" | "school";
+export type ModalKind = "application" | "signin" | "signup" | "schoolLogin";
 
-function openModal(kind: ModalKind) {
+export function openModal(kind: ModalKind) {
   window.dispatchEvent(new CustomEvent("streamflo:modal", { detail: kind }));
 }
 
-function ModalFrame({ title, eyebrow, onClose, children, wide = false }: { title: string; eyebrow: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
+export function ModalFrame({ title, eyebrow, onClose, children, wide = false }: { title: string; eyebrow: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><div className={`flow-modal ${wide ? "wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}><button className="modal-close" onClick={onClose} aria-label="Close dialog"><X size={18} /></button><div className="modal-eyebrow">{eyebrow}</div><h2>{title}</h2>{children}</div></div>;
 }
 
@@ -152,12 +171,34 @@ function ApplicationModal({ onClose }: { onClose: () => void }) {
   return <ModalFrame title="Start an application" eyebrow="Greenfield Academy · 2027 intake" onClose={onClose} wide><div className="flow-progress"><span className="active">01 <small>Child</small></span><i /><span className={step > 1 ? "active" : ""}>02 <small>Guardian</small></span><i /><span className={step > 2 ? "active" : ""}>03 <small>Review</small></span></div>{step === 1 && <div className="flow-form"><p className="modal-copy">Tell the school who you're applying for. You can save and finish this later.</p><div className="form-grid"><label>Child's full name<input placeholder="e.g. Amani Wanjiku" /></label><label>Year of entry<select defaultValue=""><option value="" disabled>Select year</option><option>2027</option><option>2028</option></select></label><label>Current level<select defaultValue=""><option value="" disabled>Select level</option><option>Grade 4</option><option>Grade 5</option><option>Grade 6</option></select></label><label>Date of birth<input type="date" /></label></div><button className="primary-action flow-next" onClick={() => setStep(2)}>Continue <ArrowRight size={16} /></button></div>}{step === 2 && <div className="flow-form"><p className="modal-copy">We'll use these details to keep you updated about the application.</p><div className="form-grid"><label>Your full name<input placeholder="e.g. Jane Wanjiku" /></label><label>Relationship<select defaultValue=""><option value="" disabled>Select relationship</option><option>Parent</option><option>Guardian</option><option>Other</option></select></label><label>Email address<input type="email" placeholder="you@example.com" /></label><label>Phone number<input placeholder="+254 7XX XXX XXX" /></label></div><div className="flow-button-row"><button className="back-button" onClick={() => setStep(1)}><ArrowLeft size={15} /> Back</button><button className="primary-action" onClick={() => setStep(3)}>Review details <ArrowRight size={16} /></button></div></div>}{step === 3 && <div className="flow-form"><p className="modal-copy">Review the basics below. Your application stays private until you submit it to the school.</p><div className="review-card"><div><small>School</small><strong>Greenfield Academy</strong></div><div><small>Intake</small><strong>2027 · Day & Boarding</strong></div><div><small>Status</small><strong className="draft-status">Draft · Not submitted</strong></div></div><div className="flow-button-row"><button className="back-button" onClick={() => setStep(2)}><ArrowLeft size={15} /> Back</button><button className="primary-action" onClick={() => setDone(true)}>Save application <Check size={16} /></button></div></div>}</ModalFrame>;
 }
 
-function AccountModal({ kind, onClose }: { kind: "signin" | "signup" | "school"; onClose: () => void }) {
-  const [mode, setMode] = useState<"signin" | "signup">(kind === "school" ? "signup" : kind);
+function AccountModal({ kind, onClose }: { kind: "signin" | "signup"; onClose: () => void }) {
+  const [mode, setMode] = useState<"signin" | "signup">(kind);
   const [submitted, setSubmitted] = useState(false);
-  if (submitted) return <ModalFrame title={kind === "school" ? "Let's get your school listed." : "Welcome to streamflo."} eyebrow="You're all set" onClose={onClose}><div className="modal-success"><span><CircleCheck size={24} /></span><p>{kind === "school" ? "Your school registration request is ready. Our team will review the details and email you the next steps." : "This is a UI preview, so no account was created. The form and flow are ready to connect to authentication."}</p><button className="primary-action" onClick={onClose}>Continue exploring <ArrowRight size={16} /></button></div></ModalFrame>;
-  const school = kind === "school";
-  return <ModalFrame title={school ? "List your school" : mode === "signin" ? "Welcome back." : "Join streamflo."} eyebrow={school ? "For school administrators" : mode === "signin" ? "Sign in to your account" : "Save schools and applications"} onClose={onClose}><div className="account-tabs">{!school && <><button className={mode === "signin" ? "active" : ""} onClick={() => setMode("signin")}>Sign in</button><button className={mode === "signup" ? "active" : ""} onClick={() => setMode("signup")}>Create account</button></>}</div><form className="flow-form account-form" onSubmit={(event) => { event.preventDefault(); setSubmitted(true); }}><p className="modal-copy">{school ? "Share a few details and we'll help you put your school in front of the right families." : mode === "signin" ? "Sign in to save schools, compare options and pick up applications where you left off." : "Create a free account to save schools and manage applications in one place."}</p>{(mode === "signup" || school) && <label>Your name<input required placeholder="e.g. Jane Wanjiku" /></label>}{school && <label>School name<input required placeholder="e.g. Greenfield Academy" /></label>}<label>Email address<input required type="email" placeholder="you@example.com" /></label><label>{mode === "signin" ? "Password" : "Phone number"}<input required type={mode === "signin" ? "password" : "tel"} placeholder={mode === "signin" ? "Enter your password" : "+254 7XX XXX XXX"} /></label>{mode === "signin" && <button className="forgot-link" type="button" onClick={() => toast("Password reset is ready to connect")}>Forgot password?</button>}<button className="primary-action full-flow-button" type="submit">{school ? "Submit school details" : mode === "signin" ? "Sign in" : "Create account"} <ArrowUpRight size={16} /></button></form></ModalFrame>;
+  if (submitted) return <ModalFrame title="Welcome to streamflo." eyebrow="You're all set" onClose={onClose}><div className="modal-success"><span><CircleCheck size={24} /></span><p>This is a UI preview, so no account was created. The form and flow are ready to connect to authentication.</p><button className="primary-action" onClick={onClose}>Continue exploring <ArrowRight size={16} /></button></div></ModalFrame>;
+  return <ModalFrame title={mode === "signin" ? "Welcome back." : "Join streamflo."} eyebrow={mode === "signin" ? "Sign in to your account" : "Save schools and applications"} onClose={onClose}><div className="account-tabs"><button className={mode === "signin" ? "active" : ""} onClick={() => setMode("signin")}>Sign in</button><button className={mode === "signup" ? "active" : ""} onClick={() => setMode("signup")}>Create account</button></div><form className="flow-form account-form" onSubmit={(event) => { event.preventDefault(); setSubmitted(true); }}><p className="modal-copy">{mode === "signin" ? "Sign in to save schools, compare options and pick up applications where you left off." : "Create a free account to save schools and manage applications in one place."}</p>{mode === "signup" && <label>Your name<input required placeholder="e.g. Jane Wanjiku" /></label>}<label>Email address<input required type="email" placeholder="you@example.com" /></label><label>{mode === "signin" ? "Password" : "Phone number"}<input required type={mode === "signin" ? "password" : "tel"} placeholder={mode === "signin" ? "Enter your password" : "+254 7XX XXX XXX"} /></label>{mode === "signin" && <button className="forgot-link" type="button" onClick={() => toast("Password reset is ready to connect")}>Forgot password?</button>}<button className="primary-action full-flow-button" type="submit">{mode === "signin" ? "Sign in" : "Create account"} <ArrowUpRight size={16} /></button></form></ModalFrame>;
+}
+
+function SchoolLoginModal({ onClose }: { onClose: () => void }) {
+  const [, navigate] = useLocation();
+  return (
+    <ModalFrame title="School login" eyebrow="For school administrators" onClose={onClose}>
+      <form
+        className="flow-form account-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onClose();
+          navigate("/school-admin");
+        }}
+      >
+        <p className="modal-copy">Sign in to manage your profile, admissions, enquiries and student onboarding.</p>
+        <label>Email address<input required type="email" placeholder="you@school.ac.ke" /></label>
+        <label>Password<input required type="password" placeholder="Enter your password" /></label>
+        <button className="forgot-link" type="button" onClick={() => toast("Password reset is ready to connect")}>Forgot password?</button>
+        <button className="primary-action full-flow-button" type="submit">Sign in to dashboard <ArrowUpRight size={16} /></button>
+      </form>
+      <p className="modal-copy" style={{ margin: "16px 0 0" }}>New to streamflo? <Link href="/list-your-school" onClick={onClose} style={{ color: "var(--coral)", fontWeight: 800 }}>List your school</Link>, or <Link href="/claim-profile" onClick={onClose} style={{ color: "var(--coral)", fontWeight: 800 }}>claim its profile</Link> if it's already listed.</p>
+    </ModalFrame>
+  );
 }
 
 function ModalHost() {
@@ -165,10 +206,12 @@ function ModalHost() {
   useEffect(() => { const listener = (event: Event) => setKind((event as CustomEvent<ModalKind>).detail); window.addEventListener("streamflo:modal", listener); return () => window.removeEventListener("streamflo:modal", listener); }, []);
   if (!kind) return null;
   const close = () => setKind(null);
-  return kind === "application" ? <ApplicationModal onClose={close} /> : <AccountModal kind={kind} onClose={close} />;
+  if (kind === "application") return <ApplicationModal onClose={close} />;
+  if (kind === "schoolLogin") return <SchoolLoginModal onClose={close} />;
+  return <AccountModal kind={kind} onClose={close} />;
 }
 
-function Header({ active = "home" }: { active?: string }) {
+export function Header({ active = "home" }: { active?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <header className="site-header">
@@ -179,11 +222,13 @@ function Header({ active = "home" }: { active?: string }) {
           <a href="#categories" onClick={() => setOpen(false)}>Explore categories</a>
           <a href="#how-it-works" onClick={() => setOpen(false)}>How it works</a>
           <Link href="/blog" className={active === "blog" ? "active" : ""} onClick={() => setOpen(false)}>Blog</Link>
+          <Link href="/pathway-ai" className={`nav-ai-link ${active === "pathway" ? "active" : ""}`} onClick={() => setOpen(false)}>Pathway AI<span className="nav-ai-pill">AI</span></Link>
           <a href="#for-schools" onClick={() => setOpen(false)}>For schools</a>
         </nav>
         <div className="header-actions">
           <button className="text-button desktop-only" onClick={() => openModal("signin")}>Sign in</button>
-          <button className="outline-button desktop-only" onClick={() => openModal("school")}>List your school <ArrowUpRight size={15} /></button>
+          <button className="text-button desktop-only" onClick={() => openModal("schoolLogin")}>School login</button>
+          <Link href="/list-your-school" className="outline-button desktop-only">List your school <ArrowUpRight size={15} /></Link>
           <button className="icon-button mobile-menu" onClick={() => setOpen(!open)} aria-label="Toggle navigation">
             {open ? <X size={21} /> : <Menu size={21} />}
           </button>
@@ -205,8 +250,8 @@ function SearchBar({ compact = false, initial = "" }: { compact?: boolean; initi
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && navigate(`/schools${query ? `?q=${encodeURIComponent(query)}` : ""}`)}
-          placeholder="Search by school, area or county"
-          aria-label="Search by school, area or county"
+          placeholder="School, estate or town"
+          aria-label="Search by school name, estate or town"
         />
       </div>
       <div className="search-divider" />
@@ -222,7 +267,7 @@ function SearchBar({ compact = false, initial = "" }: { compact?: boolean; initi
   );
 }
 
-function SectionIntro({ eyebrow, title, copy, action }: { eyebrow: string; title: string; copy?: string; action?: React.ReactNode }) {
+export function SectionIntro({ eyebrow, title, copy, action }: { eyebrow: string; title: React.ReactNode; copy?: string; action?: React.ReactNode }) {
   return (
     <div className="section-intro">
       <div>
@@ -265,10 +310,39 @@ function SchoolCard({ school, compact = false }: { school: typeof featuredSchool
 function TrustStrip() {
   return (
     <div className="trust-strip">
-      <div className="trust-item"><ShieldCheck size={19} /><span><strong>Verified information</strong><small>Updated by schools and our team</small></span></div>
-      <div className="trust-item"><Compass size={19} /><span><strong>Built for Kenya</strong><small>Counties, curricula and context</small></span></div>
-      <div className="trust-item"><CircleCheck size={19} /><span><strong>Always free to browse</strong><small>Compare without the pressure</small></span></div>
+      <div className="trust-item"><Wallet size={19} /><span><strong>Fees up front</strong><small>Tuition, boarding and transport, before you visit</small></span></div>
+      <div className="trust-item"><ShieldCheck size={19} /><span><strong>Checked, not hearsay</strong><small>Details verified with each school</small></span></div>
+      <div className="trust-item"><CircleCheck size={19} /><span><strong>Free to search and compare</strong><small>No sign-up needed to get started</small></span></div>
     </div>
+  );
+}
+
+const parentQuestions = [
+  { q: "What will it really cost per term?", a: "Tuition, boarding, transport and one-off fees on every profile, plus the full fee structure to download.", icon: Wallet },
+  { q: "CBC, British or IB — which suits my child?", a: "Filter by curriculum, then read our plain-English guides on where each one leads.", icon: Globe2 },
+  { q: "How long will the school run take?", a: "Search by estate or town and check bus routes before you fall for a campus across the city.", icon: Bus },
+  { q: "Which Senior School pathway is right for them?", a: "Pathway AI reads your Grade 9 child's report cards and suggests STEM, Social Sciences or Arts & Sports Science.", icon: Sparkles, href: "/pathway-ai", cta: "Try Pathway AI" },
+  { q: "When are interviews — and have we missed them?", a: "Admission windows, entry assessments and required documents for the 2027 intake, clearly listed.", icon: CalendarDays },
+  { q: "What do other parents honestly think?", a: "Reviews on every profile from families whose children are already there.", icon: MessageCircle },
+];
+
+function ParentQuestions() {
+  return (
+    <section className="section questions-section">
+      <div className="container">
+        <SectionIntro eyebrow="Sound familiar?" title={<>Questions you've asked <em>the WhatsApp group.</em></>} copy="Every streamflo profile is built to answer them clearly, before you take a day off for a school tour." />
+        <div className="question-grid">
+          {parentQuestions.map(({ q, a, icon: Icon, href, cta }) => (
+            <article className={`question-card ${href ? "highlighted" : ""}`} key={q}>
+              <span className="question-icon"><Icon size={18} /></span>
+              <h3>“{q}”</h3>
+              <p>{a}</p>
+              {href && <Link href={href} className="question-link">{cta} <ArrowUpRight size={14} /></Link>}
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -281,34 +355,36 @@ function HomePage() {
           <div className="hero-grain" />
           <div className="container hero-grid">
             <div className="hero-copy">
-              <div className="eyebrow light"><span className="eyebrow-line" />School search, made human</div>
-              <h1>Find a school where <em>they'll thrive.</em></h1>
-              <p className="hero-lede">Explore trusted schools across Kenya by location, curriculum, fees and the things that matter most to your family.</p>
+              <div className="eyebrow light"><span className="eyebrow-line" />Planning for the 2027 intake? Start here.</div>
+              <h1>Choose their school with <em>the full picture.</em></h1>
+              <p className="hero-lede">Real fee structures, curricula, admission dates and parent reviews for schools across Kenya, side by side. Shortlist, compare and apply without chasing admissions offices for answers.</p>
               <SearchBar />
-              <div className="hero-links"><span>Popular searches</span><button onClick={() => toast("Showing schools in Nairobi")}>Schools in Nairobi</button><button onClick={() => toast("Showing boarding schools")}>Boarding schools</button><button onClick={() => toast("Showing CBC schools")}>CBC schools</button></div>
+              <div className="hero-links"><span>Popular searches</span><button onClick={() => toast("Showing British curriculum schools in Nairobi")}>British curriculum, Nairobi</button><button onClick={() => toast("Showing boarding schools for Grade 10")}>Boarding for Grade 10</button><button onClick={() => toast("Showing schools under KES 100k a term")}>Under KES 100k a term</button></div>
             </div>
             <div className="hero-visual">
               <div className="hero-photo-frame"><img src={img.campus} alt="Aerial view of a bright school campus" /><div className="photo-wash" /></div>
-              <div className="hero-caption"><span className="caption-index">01</span><span>Spaces that make<br />room for possibility</span><ArrowUpRight size={17} /></div>
-              <div className="hero-stamp"><span className="stamp-star">✦</span><span>Discover<br />with ease</span></div>
+              <div className="hero-caption"><span className="caption-index">01</span><span>See the campus<br />before you visit</span><ArrowUpRight size={17} /></div>
+              <div className="hero-stamp"><span className="stamp-star">✦</span><span>No more<br />“call for fees”</span></div>
               <div className="hero-shape hero-shape-one" /><div className="hero-shape hero-shape-two" />
             </div>
           </div>
-          <div className="container hero-bottom"><span>Trusted by families across</span><div className="county-ticker"><span>Nairobi</span><span>Kiambu</span><span>Mombasa</span><span>Kisumu</span><span>Nakuru</span><span>Machakos</span></div></div>
+          <div className="container hero-bottom"><span>Now listing schools in</span><div className="county-ticker"><span>Nairobi</span><span>Kiambu</span><span>Kajiado</span><span>Mombasa</span><span>Nakuru</span><span>Kisumu</span></div></div>
         </section>
 
         <div className="container"><TrustStrip /></div>
 
+        <ParentQuestions />
+
         <section className="section section-featured">
           <div className="container">
-            <SectionIntro eyebrow="A considered starting point" title="Schools worth a closer look" copy="A handpicked selection of verified schools to help you start your search with confidence." action={<Link href="/schools" className="text-link">View all schools <ArrowUpRight size={16} /></Link>} />
+            <SectionIntro eyebrow="Verified profiles" title={<>Schools worth a <em>closer look.</em></>} copy="Each profile shows the fee structure, curriculum and admission dates, so your shortlist is built on facts, not forwarded messages." action={<Link href="/schools" className="text-link">Browse all schools <ArrowUpRight size={16} /></Link>} />
             <div className="school-grid">{featuredSchools.map((school) => <SchoolCard key={school.name} school={school} />)}</div>
           </div>
         </section>
 
         <section className="section location-section">
           <div className="container location-grid">
-            <div className="location-copy"><div className="eyebrow"><span className="eyebrow-line" />Start close to home</div><h2>Where are you<br /><em>looking?</em></h2><p>From a school around the corner to a new city entirely, begin with the places that shape your family's everyday.</p><Link href="/schools" className="dark-button">Explore by location <ArrowUpRight size={17} /></Link></div>
+            <div className="location-copy"><div className="eyebrow"><span className="eyebrow-line" />Start with the school run</div><h2>Closer to home.<br /><em>Calmer mornings.</em></h2><p>No child should be up at 5 a.m. to beat the traffic on Thika Road. Start with schools near home or work, and check bus routes before you commit.</p><Link href="/schools" className="dark-button">Find schools near you <ArrowUpRight size={17} /></Link></div>
             <div className="county-grid">
               {[{n:"Nairobi",c:"1,248 schools",i:img.classroom},{n:"Kiambu",c:"486 schools",i:img.campus},{n:"Mombasa",c:"302 schools",i:img.courtyard},{n:"Kisumu",c:"217 schools",i:img.sports}].map((county) => <Link href="/schools" className="county-card" key={county.n}><img src={county.i} alt="" /><div className="county-card-overlay" /><div className="county-card-copy"><span>{county.c}</span><strong>{county.n}</strong></div><ArrowUpRight size={17} /></Link>)}
             </div>
@@ -316,9 +392,9 @@ function HomePage() {
         </section>
 
         <section className="section categories-section" id="categories">
-          <div className="container"><SectionIntro eyebrow="Find your fit" title="Explore by what matters" copy="Every family has a different definition of the right fit. Start with yours." />
+          <div className="container"><SectionIntro eyebrow="Find your fit" title={<>Start with what <em>matters most.</em></>} copy="Some parents start with curriculum. Others start with boarding, or the support their child needs. Wherever you begin, we'll help you narrow it down." />
             <div className="category-grid">
-              {[{t:"Primary schools",d:"Ages 4–13",icon:BookOpen,color:"yellow"},{t:"Boarding schools",d:"Live & learn",icon:Building2,color:"green"},{t:"International",d:"A world of curricula",icon:Globe2,color:"blue"},{t:"Girls' schools",d:"Learning with confidence",icon:GraduationCap,color:"peach"},{t:"Special needs",d:"Every learner belongs",icon:Heart,color:"lilac"}].map(({t,d,icon: Icon,color}) => <button key={t} className={`category-tile ${color}`} onClick={() => toast(`${t} browse view is coming soon`)}><span className="category-icon"><Icon size={23} /></span><span><strong>{t}</strong><small>{d}</small></span><ArrowUpRight size={17} /></button>)}
+              {[{t:"CBC schools",d:"PP1 through Senior School",icon:BookOpen,color:"yellow"},{t:"Boarding schools",d:"Welfare, dorms & visiting days",icon:Building2,color:"green"},{t:"British & IB",d:"IGCSE, A-Level & the IB Diploma",icon:Globe2,color:"blue"},{t:"Senior School",d:"Grade 10 pathways, explained",icon:GraduationCap,color:"peach"},{t:"Special needs",d:"Trained staff, smaller classes",icon:Heart,color:"lilac"}].map(({t,d,icon: Icon,color}) => <button key={t} className={`category-tile ${color}`} onClick={() => toast(`${t} browse view is coming soon`)}><span className="category-icon"><Icon size={23} /></span><span><strong>{t}</strong><small>{d}</small></span><ArrowUpRight size={17} /></button>)}
             </div>
           </div>
         </section>
@@ -326,11 +402,11 @@ function HomePage() {
         <section className="section how-section" id="how-it-works">
           <div className="container how-grid">
             <div className="how-image"><img src={img.classroom} alt="Students learning together in a classroom" /><div className="how-image-label"><span>01 / 03</span><strong>From first search<br />to first day.</strong></div></div>
-            <div className="how-copy"><div className="eyebrow"><span className="eyebrow-line" />The streamflo way</div><h2>A little less <em>searching.</em><br />A lot more certainty.</h2><p>We bring the details families need into one clear place, so you can spend less time chasing information and more time picturing your child there.</p><div className="steps"><div className="step active"><span className="step-number">01</span><div><strong>Find schools that fit</strong><p>Browse with filters designed around real family decisions.</p></div></div><div className="step"><span className="step-number">02</span><div><strong>Compare with clarity</strong><p>See fees, facilities and curriculum side by side.</p></div></div><div className="step"><span className="step-number">03</span><div><strong>Take the next step</strong><p>Contact or apply directly when you're ready.</p></div></div></div></div>
+            <div className="how-copy"><div className="eyebrow"><span className="eyebrow-line" />How streamflo works</div><h2>Less running around.<br />More <em>certainty.</em></h2><p>Most parents spend weeks phoning admissions offices, taking leave for school tours and comparing notes with friends. streamflo puts the answers in one place, so the schools you visit are the ones already worth visiting.</p><div className="steps"><div className="step active"><span className="step-number">01</span><div><strong>Shortlist in an evening</strong><p>Filter by fees, curriculum, location and boarding, and save the schools that fit.</p></div></div><div className="step"><span className="step-number">02</span><div><strong>Compare side by side</strong><p>Fees, curriculum, facilities and parent reviews on one screen. No spreadsheet required.</p></div></div><div className="step"><span className="step-number">03</span><div><strong>Visit or apply with confidence</strong><p>Call, WhatsApp or start your application online, straight from the school's profile.</p></div></div></div></div>
           </div>
         </section>
 
-        <section className="section cta-section" id="for-schools"><div className="container cta-inner"><div><div className="eyebrow light"><span className="eyebrow-line" />For schools</div><h2>Let the right families<br /><em>find you.</em></h2><p>Claim your profile and share the details that make your school special.</p></div><button className="cream-button" onClick={() => openModal("school")}>List your school <ArrowUpRight size={17} /></button><div className="cta-orbit orbit-a" /><div className="cta-orbit orbit-b" /></div></section>
+        <section className="section cta-section" id="for-schools"><div className="container cta-inner"><div><div className="eyebrow light"><span className="eyebrow-line" />For schools</div><h2>Parents are comparing.<br /><em>Be easy to choose.</em></h2><p>Show families your real fees, facilities and admission dates, and hear from parents who already know you're the right fit.</p></div><div className="cta-actions"><Link href="/list-your-school" className="cream-button">List your school <ArrowUpRight size={17} /></Link><button className="cta-secondary-link" onClick={() => openModal("schoolLogin")}><LogIn size={14} /> Already listed? School login</button><Link href="/claim-profile" className="cta-secondary-link"><BadgeCheck size={14} /> Found your school here? Claim its profile</Link><Link href="/pathway-ai?school=1" className="cta-secondary-link"><Sparkles size={14} /> Preview Pathway AI for your students</Link></div><div className="cta-orbit orbit-a" /><div className="cta-orbit orbit-b" /></div></section>
       </main>
       <Footer />
     </div>
@@ -343,10 +419,10 @@ function FilterChip({ children, active = false, onClick }: { children: React.Rea
 
 function SearchResultCard({ school, index }: { school: typeof searchSchools[number]; index: number }) {
   const [saved, setSaved] = useState(false);
-  const [compared, setCompared] = useState(false);
+  const compared = useCompare().includes(school.slug);
   return <article className="result-card">
     <Link href="/schools/greenfield-academy" className="result-image"><img src={school.image} alt={`${school.name} campus`} /><span className={school.status.includes("Admissions") ? "admission-pill" : "verified-pill"}>{school.status.includes("Admissions") ? <CircleCheck size={13} /> : <BadgeCheck size={13} />}{school.status}</span></Link>
-    <div className="result-card-main"><div className="result-topline"><div><Link href="/schools/greenfield-academy" className="result-name">{school.name}</Link><div className="school-location"><MapPin size={14} />{school.location}</div></div><button className={`result-heart ${saved ? "saved" : ""}`} onClick={() => {setSaved(!saved); toast(saved ? "Removed from saved schools" : "Saved for later")}}><Heart size={17} fill={saved ? "currentColor" : "none"} /></button></div><div className="result-details"><span>{school.type}</span><span>{school.gender}</span><span>{school.mode}</span><span>{school.curriculum}</span><span>{school.level}</span></div><div className="result-meta"><span className="fee-label">{school.fees}</span><span className="result-rating"><Star size={14} fill="currentColor" /> {school.rating} <small>({school.reviews})</small></span></div><div className="result-actions"><Link href="/schools/greenfield-academy" className="small-dark-button">View school <ArrowUpRight size={15} /></Link><button className={`compare-button ${compared ? "active" : ""}`} onClick={() => {setCompared(!compared); toast(compared ? "Removed from comparison" : `${school.name} added to comparison`)}}><Check size={15} /> {compared ? "Added" : "Compare"}</button></div></div>
+    <div className="result-card-main"><div className="result-topline"><div><Link href="/schools/greenfield-academy" className="result-name">{school.name}</Link><div className="school-location"><MapPin size={14} />{school.location}</div></div><button className={`result-heart ${saved ? "saved" : ""}`} onClick={() => {setSaved(!saved); toast(saved ? "Removed from saved schools" : "Saved for later")}}><Heart size={17} fill={saved ? "currentColor" : "none"} /></button></div><div className="result-details"><span>{school.type}</span><span>{school.gender}</span><span>{school.mode}</span><span>{school.curriculum}</span><span>{school.level}</span></div><div className="result-meta"><span className="fee-label">{school.fees}</span><span className="result-rating"><Star size={14} fill="currentColor" /> {school.rating} <small>({school.reviews})</small></span></div><div className="result-actions"><Link href="/schools/greenfield-academy" className="small-dark-button">View school <ArrowUpRight size={15} /></Link><button className={`compare-button ${compared ? "active" : ""}`} aria-pressed={compared} onClick={() => toggleCompare(school.slug, school.name)}><Check size={15} /> {compared ? "Added to compare" : "Compare"}</button></div></div>
   </article>;
 }
 
@@ -366,9 +442,10 @@ function SearchPage() {
 
 function ProfilePage() {
   const [saved, setSaved] = useState(false);
+  const compared = useCompare().includes("greenfield-academy");
   const [activeTab, setActiveTab] = useState("Overview");
   const tabs = ["Overview", "Academics", "Fees", "Admissions", "Documents"];
-  return <div className="site-page profile-page"><Header active="schools" /><main><div className="container profile-breadcrumb"><Link href="/schools"><ArrowLeft size={15} /> Back to schools</Link><span>Kiambu / Ruiru / Greenfield Academy</span></div><section className="profile-hero"><div className="container profile-hero-grid"><div className="profile-cover"><img src={img.campus} alt="Greenfield Academy campus" /><div className="profile-cover-gradient" /><div className="profile-cover-caption"><span>Greenfield Academy</span><small>Ruiru, Kiambu County</small></div><div className="cover-dots"><span className="active" /><span /><span /><span /></div></div><div className="profile-summary"><div className="verified-line"><BadgeCheck size={16} /> Verified school profile <span>·</span> Updated 12 Aug 2026</div><h1>Greenfield<br /><em>Academy</em></h1><p className="profile-location"><MapPin size={17} /> Ruiru, Kiambu County</p><div className="profile-tags"><span>Private</span><span>Mixed</span><span>Day & Boarding</span><span>CBC</span></div><div className="profile-rating"><span className="stars"><Star size={16} fill="currentColor" /><Star size={16} fill="currentColor" /><Star size={16} fill="currentColor" /><Star size={16} fill="currentColor" /><Star size={16} fill="currentColor" /></span><strong>4.8</strong><span>32 parent reviews</span></div><div className="profile-actions"><button className="primary-action" onClick={() => openModal("application")}>Start an application <ArrowUpRight size={17} /></button><button className={`save-profile ${saved ? "saved" : ""}`} onClick={() => {setSaved(!saved); toast(saved ? "Removed from saved schools" : "School saved for later")}}><Heart size={17} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save school"}</button></div></div></div></section><div className="container profile-tabs"><div className="tabs-scroll">{tabs.map((tab) => <button className={activeTab === tab ? "active" : ""} key={tab} onClick={() => {setActiveTab(tab); document.getElementById(`profile-${tab.toLowerCase()}`)?.scrollIntoView({behavior: "smooth", block: "start"})}}>{tab}</button>)}</div><div className="profile-quick-actions"><button onClick={() => toast("Opening phone app…")}><Phone size={15} /> Call</button><button onClick={() => toast("WhatsApp is coming soon")}><MessageCircle size={15} /> WhatsApp</button><button onClick={() => toast("Directions are coming soon")}><Navigation size={15} /> Directions</button></div></div><section className="container profile-content"><div className="profile-main"><section id="profile-overview" className="profile-section first"><div className="eyebrow"><span className="eyebrow-line" />About the school</div><h2>A place to grow <em>curious.</em></h2><p className="large-copy">Greenfield Academy is a private co-educational day and boarding school located in Ruiru, Kiambu. We create a warm, ambitious environment where every learner is known, challenged and encouraged to find their own way forward.</p><div className="info-grid"><div className="info-card"><span className="info-icon"><GraduationCap size={19} /></span><span><small>Education levels</small><strong>Primary, JSS</strong></span></div><div className="info-card"><span className="info-icon"><CalendarDays size={19} /></span><span><small>Established</small><strong>2008</strong></span></div><div className="info-card"><span className="info-icon"><Building2 size={19} /></span><span><small>School size</small><strong>640 learners</strong></span></div><div className="info-card"><span className="info-icon"><MapPin size={19} /></span><span><small>Campus</small><strong>14 acres</strong></span></div></div></section><section id="profile-academics" className="profile-section"><div className="section-heading-row"><div><div className="eyebrow"><span className="eyebrow-line" />Learning at Greenfield</div><h2>Built for <em>full lives.</em></h2></div><button className="text-link" onClick={() => toast("Full academics details are coming soon")}>View academics <ArrowUpRight size={16} /></button></div><div className="academics-grid"><div className="academic-panel"><span className="academic-number">01</span><h3>CBC curriculum</h3><p>Learning that balances strong foundations with the confidence to think, make and contribute.</p><div className="academic-tags"><span>Competency based</span><span>Project learning</span></div></div><div className="academic-panel highlighted"><span className="academic-number">02</span><h3>Beyond the classroom</h3><p>From swimming to robotics, every learner has space to find the thing that lights them up.</p><div className="academic-tags"><span>12 activities</span><span>3 sports fields</span></div></div></div></section><section id="profile-fees" className="profile-section fee-section"><div className="section-heading-row"><div><div className="eyebrow"><span className="eyebrow-line" />Transparent by design</div><h2>Fees at a <em>glance.</em></h2></div><span className="updated-badge"><Clock3 size={14} /> Updated 12 Aug 2026</span></div><div className="fees-table"><div className="fee-row fee-header"><span>2026 school fees</span><span>Per term</span><span>Notes</span></div><div className="fee-row"><strong>Tuition fees</strong><strong>KES 85,000</strong><span>All learners</span></div><div className="fee-row"><span>Boarding</span><strong>KES 25,000</strong><span>Optional</span></div><div className="fee-row"><span>Transport</span><strong>From KES 12,000</strong><span>By route</span></div></div><button className="download-button" onClick={() => toast("Fee structure download is coming soon")}><Download size={16} /> Download full fee structure <ArrowUpRight size={15} /></button></section><section id="profile-admissions" className="profile-section admissions-section"><div className="admission-callout"><div><div className="eyebrow light"><span className="eyebrow-line" />Admissions 2027</div><h2>Ready when<br /><em>you are.</em></h2><p>Applications for the 2027 academic year are now open. Start online or speak to the admissions team.</p></div><button className="cream-button" onClick={() => openModal("application")}>Start application <ArrowUpRight size={17} /></button></div></section><section id="profile-documents" className="profile-section documents-section"><div className="section-heading-row"><div><div className="eyebrow"><span className="eyebrow-line" />Useful documents</div><h2>Take it with <em>you.</em></h2></div></div><div className="document-list">{[{name:"2026 Fee Structure",detail:"PDF · Updated 12 Aug 2026"},{name:"Admissions guide",detail:"PDF · Updated 04 Jul 2026"},{name:"School prospectus",detail:"PDF · Updated 18 Jun 2026"}].map((doc) => <div className="document-row" key={doc.name}><span className="document-icon"><FileText size={19} /></span><span><strong>{doc.name}</strong><small>{doc.detail}</small></span><button onClick={() => toast(`${doc.name} download is coming soon`)}><Download size={16} /></button></div>)}</div></section></div><aside className="profile-aside"><div className="contact-card"><div className="eyebrow"><span className="eyebrow-line" />Get in touch</div><h3>Questions?<br /><em>Let's talk.</em></h3><p>The admissions team usually replies within one working day.</p><button className="full-dark-button" onClick={() => toast("Enquiry form is coming soon")}>Contact the school <ArrowUpRight size={16} /></button><div className="contact-links"><button onClick={() => toast("Opening phone app…")}><Phone size={15} /> +254 709 123 456</button><button onClick={() => toast("Opening email…")}><Mail size={15} /> admissions@greenfield.sc.ke</button><button onClick={() => toast("Directions are coming soon")}><MapPin size={15} /> Eastern Bypass, Ruiru</button></div></div><div className="mini-map"><div className="mini-map-grid" /><div className="mini-map-pin"><MapPin size={22} fill="currentColor" /></div><span>Greenfield Academy</span><button onClick={() => toast("Map view is coming soon")}>Open in maps <ArrowUpRight size={14} /></button></div><div className="claim-card"><Sparkles size={17} /><div><strong>Are you from this school?</strong><p>Claim this profile to keep information up to date.</p><button onClick={() => toast("Claim flow is coming soon")}>Claim this profile <ArrowUpRight size={14} /></button></div></div></aside></section></main><Footer /></div>;
+  return <div className="site-page profile-page"><Header active="schools" /><main><div className="container profile-breadcrumb"><Link href="/schools"><ArrowLeft size={15} /> Back to schools</Link><span>Kiambu / Ruiru / Greenfield Academy</span></div><section className="profile-hero"><div className="container profile-hero-grid"><div className="profile-cover"><img src={img.campus} alt="Greenfield Academy campus" /><div className="profile-cover-gradient" /><div className="profile-cover-caption"><span>Greenfield Academy</span><small>Ruiru, Kiambu County</small></div><div className="cover-dots"><span className="active" /><span /><span /><span /></div></div><div className="profile-summary"><div className="verified-line"><BadgeCheck size={16} /> Verified school profile <span>·</span> Updated 12 Aug 2026</div><h1>Greenfield<br /><em>Academy</em></h1><p className="profile-location"><MapPin size={17} /> Ruiru, Kiambu County</p><div className="profile-tags"><span>Private</span><span>Mixed</span><span>Day & Boarding</span><span>CBC</span></div><div className="profile-rating"><span className="stars"><Star size={16} fill="currentColor" /><Star size={16} fill="currentColor" /><Star size={16} fill="currentColor" /><Star size={16} fill="currentColor" /><Star size={16} fill="currentColor" /></span><strong>4.8</strong><span>32 parent reviews</span></div><div className="profile-actions"><button className="primary-action" onClick={() => openModal("application")}>Start an application <ArrowUpRight size={17} /></button><button className={`save-profile ${saved ? "saved" : ""}`} onClick={() => {setSaved(!saved); toast(saved ? "Removed from saved schools" : "School saved for later")}}><Heart size={17} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save school"}</button><button className={`save-profile ${compared ? "saved" : ""}`} aria-pressed={compared} onClick={() => toggleCompare("greenfield-academy", "Greenfield Academy")}>{compared ? <Check size={17} /> : <Scale size={17} />} {compared ? "Added to compare" : "Compare"}</button></div></div></div></section><div className="container profile-tabs"><div className="tabs-scroll">{tabs.map((tab) => <button className={activeTab === tab ? "active" : ""} key={tab} onClick={() => {setActiveTab(tab); document.getElementById(`profile-${tab.toLowerCase()}`)?.scrollIntoView({behavior: "smooth", block: "start"})}}>{tab}</button>)}</div><div className="profile-quick-actions"><button onClick={() => toast("Opening phone app…")}><Phone size={15} /> Call</button><button onClick={() => toast("WhatsApp is coming soon")}><MessageCircle size={15} /> WhatsApp</button><button onClick={() => toast("Directions are coming soon")}><Navigation size={15} /> Directions</button></div></div><section className="container profile-content"><div className="profile-main"><section id="profile-overview" className="profile-section first"><div className="eyebrow"><span className="eyebrow-line" />About the school</div><h2>A place to grow <em>curious.</em></h2><p className="large-copy">Greenfield Academy is a private co-educational day and boarding school located in Ruiru, Kiambu. We create a warm, ambitious environment where every learner is known, challenged and encouraged to find their own way forward.</p><div className="info-grid"><div className="info-card"><span className="info-icon"><GraduationCap size={19} /></span><span><small>Education levels</small><strong>Primary, JSS</strong></span></div><div className="info-card"><span className="info-icon"><CalendarDays size={19} /></span><span><small>Established</small><strong>2008</strong></span></div><div className="info-card"><span className="info-icon"><Building2 size={19} /></span><span><small>School size</small><strong>640 learners</strong></span></div><div className="info-card"><span className="info-icon"><MapPin size={19} /></span><span><small>Campus</small><strong>14 acres</strong></span></div></div></section><section id="profile-academics" className="profile-section"><div className="section-heading-row"><div><div className="eyebrow"><span className="eyebrow-line" />Learning at Greenfield</div><h2>Built for <em>full lives.</em></h2></div><button className="text-link" onClick={() => toast("Full academics details are coming soon")}>View academics <ArrowUpRight size={16} /></button></div><div className="academics-grid"><div className="academic-panel"><span className="academic-number">01</span><h3>CBC curriculum</h3><p>Learning that balances strong foundations with the confidence to think, make and contribute.</p><div className="academic-tags"><span>Competency based</span><span>Project learning</span></div></div><div className="academic-panel highlighted"><span className="academic-number">02</span><h3>Beyond the classroom</h3><p>From swimming to robotics, every learner has space to find the thing that lights them up.</p><div className="academic-tags"><span>12 activities</span><span>3 sports fields</span></div></div></div></section><section id="profile-fees" className="profile-section fee-section"><div className="section-heading-row"><div><div className="eyebrow"><span className="eyebrow-line" />Transparent by design</div><h2>Fees at a <em>glance.</em></h2></div><span className="updated-badge"><Clock3 size={14} /> Updated 12 Aug 2026</span></div><div className="fees-table"><div className="fee-row fee-header"><span>2026 school fees</span><span>Per term</span><span>Notes</span></div><div className="fee-row"><strong>Tuition fees</strong><strong>KES 85,000</strong><span>All learners</span></div><div className="fee-row"><span>Boarding</span><strong>KES 25,000</strong><span>Optional</span></div><div className="fee-row"><span>Transport</span><strong>From KES 12,000</strong><span>By route</span></div></div><button className="download-button" onClick={() => toast("Fee structure download is coming soon")}><Download size={16} /> Download full fee structure <ArrowUpRight size={15} /></button></section><section id="profile-admissions" className="profile-section admissions-section"><div className="admission-callout"><div><div className="eyebrow light"><span className="eyebrow-line" />Admissions 2027</div><h2>Ready when<br /><em>you are.</em></h2><p>Applications for the 2027 academic year are now open. Start online or speak to the admissions team.</p></div><button className="cream-button" onClick={() => openModal("application")}>Start application <ArrowUpRight size={17} /></button></div></section><section id="profile-documents" className="profile-section documents-section"><div className="section-heading-row"><div><div className="eyebrow"><span className="eyebrow-line" />Useful documents</div><h2>Take it with <em>you.</em></h2></div></div><div className="document-list">{[{name:"2026 Fee Structure",detail:"PDF · Updated 12 Aug 2026"},{name:"Admissions guide",detail:"PDF · Updated 04 Jul 2026"},{name:"School prospectus",detail:"PDF · Updated 18 Jun 2026"}].map((doc) => <div className="document-row" key={doc.name}><span className="document-icon"><FileText size={19} /></span><span><strong>{doc.name}</strong><small>{doc.detail}</small></span><button onClick={() => toast(`${doc.name} download is coming soon`)}><Download size={16} /></button></div>)}</div></section></div><aside className="profile-aside"><div className="contact-card"><div className="eyebrow"><span className="eyebrow-line" />Get in touch</div><h3>Questions?<br /><em>Let's talk.</em></h3><p>The admissions team usually replies within one working day.</p><button className="full-dark-button" onClick={() => toast("Enquiry form is coming soon")}>Contact the school <ArrowUpRight size={16} /></button><div className="contact-links"><button onClick={() => toast("Opening phone app…")}><Phone size={15} /> +254 709 123 456</button><button onClick={() => toast("Opening email…")}><Mail size={15} /> admissions@greenfield.sc.ke</button><button onClick={() => toast("Directions are coming soon")}><MapPin size={15} /> Eastern Bypass, Ruiru</button></div></div><div className="mini-map"><div className="mini-map-grid" /><div className="mini-map-pin"><MapPin size={22} fill="currentColor" /></div><span>Greenfield Academy</span><button onClick={() => toast("Map view is coming soon")}>Open in maps <ArrowUpRight size={14} /></button></div><div className="claim-card"><Sparkles size={17} /><div><strong>Are you from this school?</strong><p>Claim this profile to keep information up to date.</p><Link href="/claim-profile?school=greenfield-academy">Claim this profile <ArrowUpRight size={14} /></Link></div></div></aside></section></main><Footer /></div>;
 }
 
 const blogPosts = [
@@ -385,17 +462,30 @@ function BlogPage() {
   return <div className="site-page blog-page"><Header active="blog" /><main><section className="blog-hero"><div className="container"><div className="breadcrumb"><Link href="/">Home</Link><ChevronRight size={14} /><span>Blog</span></div><div className="blog-hero-grid"><div><div className="eyebrow light"><span className="eyebrow-line" />The streamflo journal</div><h1>Good questions<br />make <em>good choices.</em></h1></div><p>Education news, school stories and practical ideas for families finding their way from first search to first day.</p></div></div></section><section className="blog-body"><div className="container"><div className="topic-tabs">{topics.map((item) => <button key={item} className={topic === item ? "active" : ""} onClick={() => setTopic(item)}>{item}</button>)}</div><div className="blog-feature"><img src={img.classroom} alt="Students learning together" /><div className="blog-feature-copy"><span className="article-category">{blogPosts[0].category} <i /> {blogPosts[0].date}</span><h2>{blogPosts[0].title}</h2><p>{blogPosts[0].excerpt}</p><button className="dark-button" onClick={() => toast("Article reader is ready to connect")}>Read the story <ArrowUpRight size={16} /></button></div></div><div className="blog-heading"><div><div className="eyebrow"><span className="eyebrow-line" />From the journal</div><h2>More to <em>explore.</em></h2></div><span>{visiblePosts.length} stories</span></div><div className="blog-grid">{visiblePosts.map((post) => <article className="blog-card" key={post.title}><div className="blog-card-image"><img src={post.image} alt="" /><span className={`blog-tone ${post.tone}`}>{post.category}</span></div><div className="blog-card-copy"><span className="article-date">{post.date}</span><h3>{post.title}</h3><p>{post.excerpt}</p><button onClick={() => toast("Article reader is ready to connect")}>Read more <ArrowUpRight size={15} /></button></div></article>)}</div><div className="journal-signup"><div><div className="eyebrow light"><span className="eyebrow-line" />A note for your inbox</div><h2>Useful things,<br /><em>occasionally.</em></h2></div><form onSubmit={(event) => { event.preventDefault(); toast("You're on the journal list"); }}><input required type="email" placeholder="Your email address" aria-label="Your email address" /><button type="submit">Subscribe <ArrowUpRight size={16} /></button><small>No noise. Just thoughtful school and education stories.</small></form></div></div></section></main><Footer /></div>;
 }
 
-function Footer() {
-  return <footer className="site-footer"><div className="container footer-grid"><div><Logo /><p>Helping families find<br />the right place to grow.</p><div className="footer-socials"><button aria-label="Instagram" onClick={() => toast("Social links are coming soon")}>ig</button><button aria-label="Facebook" onClick={() => toast("Social links are coming soon")}>f</button><button aria-label="X" onClick={() => toast("Social links are coming soon")}>x</button></div></div><div className="footer-links"><div><strong>Discover</strong><Link href="/schools">Find a school</Link><a href="#categories">Explore categories</a><a href="#how-it-works">How it works</a><button onClick={() => toast("Compare is coming soon")}>Compare schools</button></div><div><strong>For schools</strong><button onClick={() => openModal("school")}>List your school</button><button onClick={() => toast("Resources are coming soon")}>School resources</button><button onClick={() => toast("Claim flow is coming soon")}>Claim a profile</button><button onClick={() => toast("Contact is coming soon")}>Contact us</button></div><div><strong>Company</strong><button onClick={() => toast("About page is coming soon")}>About streamflo</button><button onClick={() => toast("Privacy page is coming soon")}>Privacy</button><button onClick={() => toast("Terms page is coming soon")}>Terms</button></div></div></div><div className="container footer-bottom"><span>© 2026 streamflo. Made for families in Kenya.</span><span>From first search to first day.</span></div></footer>;
+export function Footer() {
+  return <footer className="site-footer"><div className="container footer-grid"><div><Logo /><p>Helping Kenyan parents choose<br />schools with confidence.</p><div className="footer-socials"><button aria-label="Instagram" onClick={() => toast("Social links are coming soon")}>ig</button><button aria-label="Facebook" onClick={() => toast("Social links are coming soon")}>f</button><button aria-label="X" onClick={() => toast("Social links are coming soon")}>x</button></div></div><div className="footer-links"><div><strong>Discover</strong><Link href="/schools">Find a school</Link><a href="#categories">Explore categories</a><a href="#how-it-works">How it works</a><Link href="/pathway-ai">Pathway AI advisor</Link><Link href="/compare">Compare schools</Link></div><div><strong>For schools</strong><Link href="/list-your-school">List your school</Link><button onClick={() => openModal("schoolLogin")}>School login</button><Link href="/pathway-ai?school=1">Pathway AI for schools</Link><Link href="/school-resources">School resources</Link><Link href="/claim-profile">Claim a profile</Link></div><div><strong>Company</strong><button onClick={() => toast("About page is coming soon")}>About streamflo</button><button onClick={() => toast("Privacy page is coming soon")}>Privacy</button><button onClick={() => toast("Terms page is coming soon")}>Terms</button></div></div></div><div className="container footer-bottom"><span>© 2026 streamflo. Made for families in Kenya.</span><span>From first search to first day.</span></div></footer>;
 }
 
 export default function Home() {
   const [location] = useLocation();
+  // Client-side navigation keeps the old scroll position; footer links would otherwise land mid-page.
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [location]);
   const page = useMemo(() => {
     if (location.startsWith("/schools/greenfield-academy")) return <ProfilePage />;
     if (location.startsWith("/schools")) return <SearchPage />;
+    if (location.startsWith("/compare")) return <Compare />;
+    if (location.startsWith("/claim-profile")) return <ClaimProfile />;
+    if (location.startsWith("/school-resources")) return <SchoolResources />;
     if (location.startsWith("/blog")) return <BlogPage />;
+    if (location.startsWith("/list-your-school")) return <ListYourSchool />;
+    if (location.startsWith("/pathway-ai")) return <PathwayAI />;
+    if (location.startsWith("/school-admin/profile")) return <Profile />;
+    if (location.startsWith("/school-admin/media")) return <Media />;
+    if (location.startsWith("/school-admin/enquiries")) return <Enquiries />;
+    if (location.startsWith("/school-admin/admissions")) return <Admissions />;
+    if (location.startsWith("/school-admin/onboarding")) return <Onboarding />;
+    if (location.startsWith("/school-admin")) return <Overview />;
     return <HomePage />;
   }, [location]);
-  return <><ModalHost />{page}</>;
+  return <><ModalHost />{page}{location.startsWith("/schools") && <CompareTray />}</>;
 }
